@@ -1,129 +1,129 @@
-# Multimodal-Stock-Forecasting
-**多模态股票预测框架 | 图像模态 + 时间序列模态融合**
+# Multimodal Stock Forecasting  
+**Multimodal Stock Prediction Framework | Image Modality + Time Series Modality Fusion**
 
-本项目基于股票K线图，使用MAE/ViT模型进行图像特征提取与对比实验，最终用于多模态股票收益率预测。
-
----
-
-## 已完成工作
-1. 股票混合图与分图生成
-2. 基于MAE和ViT的图像特征提取
-3. 特征质量对比（方差、相似度、MSE、MAE）
-4. 最优特征方案验证
+This project is based on stock candlestick charts and employs MAE/ViT models for image feature extraction and comparative experiments, ultimately facilitating multimodal stock return prediction.
 
 ---
 
-## 实验结论
-| 特征类型 | 方差 | 相似度 | MSE | MAE |
-|---------|------|--------|-----|-----|
-| 分图-ViT | 2.4979 | 0.9793 | 0.0047 | 0.0469 |
-| 分图-MAE | 0.3508 | 0.9947 | 0.0046 | 0.0467 |
-| 混合图-ViT | 2.6066 | 0.9767 | 0.0006 | 0.0163 |
-| **混合图-MAE** | **2.6171** | **0.9708** | **0.0006** | **0.0167** |
-
-**最优方案：混合图 + MAE 特征提取**
+## Completed Work
+1. Generation of mixed and separate stock charts  
+2. Image feature extraction based on MAE and ViT  
+3. Feature quality comparison (variance, similarity, MSE, MAE)  
+4. Validation of optimal feature scheme  
 
 ---
 
-## GitHub 已上传内容
+## Experimental Conclusions
+| Feature Type         | Variance | Similarity | MSE    | MAE    |
+|----------------------|----------|------------|--------|--------|
+| Separate-ViT         | 2.4979   | 0.9793     | 0.0047 | 0.0469 |
+| Separate-MAE         | 0.3508   | 0.9947     | 0.0046 | 0.0467 |
+| Mixed-ViT            | 2.6066   | 0.9767     | 0.0006 | 0.0163 |
+| **Mixed-MAE**        | **2.6171** | **0.9708** | **0.0006** | **0.0167** |
+
+**Optimal Scheme: Mixed Chart + MAE Feature Extraction**
+
+---
+
+## GitHub Uploaded Content
 ### code/
-- 混合图绘制：`mix_generate_figure.ipynb`
-- 分图绘制：`generate_separate_figure.ipynb`
-- MAE特征提取：`mae_features_npz.ipynb`
-- ViT特征提取：`vit_features_npz.ipynb`
-- 分图特征提取：`f_s_mae.ipynb`、`f_s_vit.ipynb`
-- 对比实验：`混合图vs分图.ipynb`、`mae_vs_vit.ipynb`、`f_s_vit_vs_mae.ipynb`
-- 模型下载脚本：`hf_download.ipynb`
+- Mixed chart generation: `mix_generate_figure.ipynb`
+- Separate chart generation: `generate_separate_figure.ipynb`
+- MAE feature extraction: `mae_features_npz.ipynb`
+- ViT feature extraction: `vit_features_npz.ipynb`
+- Separate chart feature extraction: `f_s_mae.ipynb`, `f_s_vit.ipynb`
+- Comparative experiments: `混合图vs分图.ipynb`, `mae_vs_vit.ipynb`, `f_s_vit_vs_mae.ipynb`
+- Model download script: `hf_download.ipynb`
 
 ### data/
-- 原始股票数据：`日个股数据2.0.csv`
+- Raw stock data: `日个股数据2.0.csv`
 
 ---
 
-## 未上传大文件（待发布至HuggingFace）
-由于文件体积限制，以下内容未上传至GitHub，未来将统一发布在HuggingFace等数据集平台：
-1. **models/**：MAE预训练模型权重（`model.safetensors`、`config.json`）
-2. **figures/**：混合图、分图图像数据
-3. **results/**：提取完成的npz特征文件、实验对比图`mix_vs_split.png`
+## Large Files Not Uploaded (To Be Released on HuggingFace)
+Due to file size limitations, the following contents have not been uploaded to GitHub and will be published on platforms such as HuggingFace in the future:  
+1. **models/**: MAE pre-trained model weights (`model.safetensors`, `config.json`)  
+2. **figures/**: Mixed and separate chart image data  
+3. **results/**: Extracted npz feature files, experimental comparison plots `mix_vs_split.png`
 
 ---
 
-## 完整复现步骤
-以下步骤可完整复现本项目所有图像、特征与对比实验结果：
+## Complete Reproduction Steps
+The following steps enable full reproduction of all images, features, and comparative experimental results in this project:
 
-### 1. 下载MAE模型
-- 代码：`code/hf_download.ipynb`
-- 输入：无（从huggingface-mirror自动下载）
-- 输出：`models/new_mae_model/`
-- 功能：获取预训练MAE模型权重，为后续特征提取提供模型支撑
+### 1. Download MAE Model
+- Code: `code/hf_download.ipynb`
+- Input: None (automatically downloaded from huggingface-mirror)
+- Output: `models/new_mae_model/`
+- Description: Obtains pre-trained MAE model weights to support subsequent feature extraction.
 
-### 2. 生成股票混合图
-- 代码：`code/mix_generate_figure.ipynb`
-- 输入：`data/日个股数据2.0.csv`
-- 输出：`figures/`
-- 功能：生成包含K线、成交量热力图与均线指标的混合图（时间窗口为60天），每支股票对应一个文件夹存储多张时序图像
+### 2. Generate Mixed Stock Charts
+- Code: `code/mix_generate_figure.ipynb`
+- Input: `data/日个股数据2.0.csv`
+- Output: `figures/`
+- Description: Generates mixed charts incorporating candlesticks, volume heatmaps, and moving average indicators (time window: 60 days). Each stock corresponds to a folder storing multiple sequential images.
 
-### 3. 生成股票分图
-- 代码：`code/generate_separate_figure.ipynb`
-- 输入：`data/日个股数据2.0.csv`
-- 输出：`figure_separate/`
-- 功能：生成K线、成交量、技术指标分离的分图数据，每只股票对应独立存储
+### 3. Generate Separate Stock Charts
+- Code: `code/generate_separate_figure.ipynb`
+- Input: `data/日个股数据2.0.csv`
+- Output: `figure_separate/`
+- Description: Generates separate chart data where candlesticks, volume, and technical indicators are isolated. Each stock is stored independently.
 
-### 4. 混合图特征提取
-#### MAE特征提取
-- 代码：`code/mae_features_npz.ipynb`
-- 输入：`figures/` + `models/new_mae_model/`
-- 输出：`results/mae_new_npz_features/`
-- 标签：收益率（已正确标注）
+### 4. Feature Extraction from Mixed Charts
+#### MAE Feature Extraction
+- Code: `code/mae_features_npz.ipynb`
+- Input: `figures/` + `models/new_mae_model/`
+- Output: `results/mae_new_npz_features/`
+- Label: Returns (correctly annotated)
 
-#### ViT特征提取
-- 代码：`code/vit_features_npz.ipynb`
-- 输入：`figures/`
-- 输出：`results/vit_new_npz_features/`
+#### ViT Feature Extraction
+- Code: `code/vit_features_npz.ipynb`
+- Input: `figures/`
+- Output: `results/vit_new_npz_features/`
 
-### 5. 分图特征提取
-#### MAE特征提取
-- 代码：`code/f_s_mae.ipynb`
-- 输入：`figure_separate/`
-- 输出：`results/f_s_mae_features/`
+### 5. Feature Extraction from Separate Charts
+#### MAE Feature Extraction
+- Code: `code/f_s_mae.ipynb`
+- Input: `figure_separate/`
+- Output: `results/f_s_mae_features/`
 
-#### ViT特征提取
-- 代码：`code/f_s_vit.ipynb`
-- 输入：`figure_separate/`
-- 输出：`results/f_s_vit_features/`
+#### ViT Feature Extraction
+- Code: `code/f_s_vit.ipynb`
+- Input: `figure_separate/`
+- Output: `results/f_s_vit_features/`
 
-### 6. 特征对比实验
-#### 混合图 vs 分图对比
-- 代码：`code/混合图vs分图.ipynb`
-- 输入：所有提取完成的特征文件
-- 输出：方差、相似度、MSE、MAE四项指标对比结果
-- 结论：混合图-MAE特征表现最优
+### 6. Feature Comparison Experiments
+#### Mixed vs. Separate Charts
+- Code: `code/混合图vs分图.ipynb`
+- Input: All extracted feature files
+- Output: Comparison results of four metrics: variance, similarity, MSE, MAE
+- Conclusion: Mixed-MAE features achieve the best performance.
 
-#### 分图内部对比（ViT vs MAE）
-- 代码：`code/f_s_vit_vs_mae.ipynb`
-- 功能：验证分图场景下不同模型的特征质量差异
+#### Separate Chart Comparison (ViT vs. MAE)
+- Code: `code/f_s_vit_vs_mae.ipynb`
+- Description: Validates the difference in feature quality between models in the separate chart scenario.
 
-#### 混合图内部对比（MAE vs ViT）
-- 代码：`code/mae_vs_vit.ipynb`
-- 功能：验证混合图场景下不同模型的特征质量差异
-
----
-
-## 最终产出
-- 股票混合图与分图图像数据
-- MAE/ViT提取的图像特征（npz格式）
-- 4种特征组合的质量对比指标
-- **最优特征方案：混合图 + MAE**
+#### Mixed Chart Comparison (MAE vs. ViT)
+- Code: `code/mae_vs_vit.ipynb`
+- Description: Validates the difference in feature quality between models in the mixed chart scenario.
 
 ---
 
-## 未来工作
-1. 时间序列模态特征提取
-2. 多模态特征融合
-3. 收益率预测模型训练与回测
-4. 数据集与模型权重发布至HuggingFace
+## Final Outputs
+- Mixed and separate stock chart image data  
+- Image features extracted via MAE/ViT (npz format)  
+- Quality comparison metrics for four feature combinations  
+- **Optimal feature scheme: Mixed Chart + MAE**
 
 ---
 
-## 说明
-GitHub仓库仅存放代码与项目说明，图像、特征、模型权重等大体积文件将在HuggingFace平台单独发布。
+## Future Work
+1. Time series modality feature extraction  
+2. Multimodal feature fusion  
+3. Return prediction model training and backtesting  
+4. Dataset and model weights release on HuggingFace
+
+---
+
+## Note
+The GitHub repository contains only code and project documentation. Large files such as images, features, and model weights will be separately published on the HuggingFace platform.
