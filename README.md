@@ -1,15 +1,15 @@
-# Multimodal Stock Forecasting  
+# Multimodal Stock Forecasting
 **Multimodal Stock Prediction Framework | Image Modality + Time Series Modality Fusion**
 
-This project is based on stock candlestick charts and employs MAE/ViT models for image feature extraction and comparative experiments, ultimately facilitating multimodal stock return prediction.
+This project constructs stock candlestick chart datasets (mixed and separate formats) based on historical trading data, employs MAE and ViT models for image feature extraction, and conducts comprehensive feature quality comparisons using variance, similarity, MSE, and MAE metrics. The results establish an optimal multimodal feature scheme for stock return prediction.
 
 ---
 
 ## Completed Work
-1. Generation of mixed and separate stock charts  
-2. Image feature extraction based on MAE and ViT  
-3. Feature quality comparison (variance, similarity, MSE, MAE)  
-4. Validation of optimal feature scheme  
+1. Generation of mixed and separate stock candlestick charts
+2. Image feature extraction based on MAE and ViT architectures
+3. Quantitative feature quality evaluation across four metrics
+4. Validation and selection of the optimal feature extraction scheme
 
 ---
 
@@ -25,105 +25,102 @@ This project is based on stock candlestick charts and employs MAE/ViT models for
 
 ---
 
-## GitHub Uploaded Content
-### code/
+## GitHub Repository Contents
+### `code/`
 - Mixed chart generation: `mix_generate_figure.ipynb`
 - Separate chart generation: `generate_separate_figure.ipynb`
-- MAE feature extraction: `mae_features_npz.ipynb`
-- ViT feature extraction: `vit_features_npz.ipynb`
-- Separate chart feature extraction: `f_s_mae.ipynb`, `f_s_vit.ipynb`
-- Comparative experiments: `混合图vs分图.ipynb`, `mae_vs_vit.ipynb`, `f_s_vit_vs_mae.ipynb`
-- Model download script: `hf_download.ipynb`
+- Mixed chart MAE feature extraction: `mae_features_npz.ipynb`
+- Mixed chart ViT feature extraction: `vit_features_npz.ipynb`
+- Separate chart MAE feature extraction: `f_s_mae.ipynb`
+- Separate chart ViT feature extraction: `f_s_vit.ipynb`
+- Main comparative experiment: `混合图vs分图.ipynb`
+- Mixed chart model comparison: `mae_vs_vit.ipynb`
+- Separate chart model comparison: `f_s_vit_vs_mae.ipynb`
+- MAE model download script: `hf_download.ipynb`
 
-### data/
-- Raw stock data: `日个股数据2.0.csv`
+### `data/`
+- Raw stock trading data: `日个股数据2.0.csv`
 
 ---
 
-## Large Files Not Uploaded (To Be Released on HuggingFace)
-Due to file size limitations, the following contents have not been uploaded to GitHub and will be published on platforms such as HuggingFace in the future:  
-1. **models/**: MAE pre-trained model weights (`model.safetensors`, `config.json`)  
-2. **figures/**: Mixed and separate chart image data  
-3. **results/**: Extracted npz feature files, experimental comparison plots `mix_vs_split.png`
+## Dataset and Model Resources (Hugging Face)
+All large files (images, features, model weights) have been published on Hugging Face for academic use:
+
+- **Full Dataset (Images + Extracted Features)**:  
+  https://huggingface.co/datasets/zhangqingyue127/Multimodal-Stock-Forecasting-Dataset
+
+- **Pre-trained MAE Model Weights**:  
+  https://huggingface.co/zhangqingyue127/Multimodal-Stock-Forecasting-MAE
 
 ---
 
 ## Complete Reproduction Steps
-The following steps enable full reproduction of all images, features, and comparative experimental results in this project:
+Two reproduction paths are provided:
 
-### 1. Download MAE Model
-- Code: `code/hf_download.ipynb`
-- Input: None (automatically downloaded from huggingface-mirror)
-- Output: `models/new_mae_model/`
-- Description: Obtains pre-trained MAE model weights to support subsequent feature extraction.
+### Path 1: Quick Reproduction (Recommended)
+Download pre-generated resources directly from Hugging Face and run comparative experiments:
+1. Download the dataset and model from the links above
+2. Run `code/混合图vs分图.ipynb` to reproduce all experimental results
 
-### 2. Generate Mixed Stock Charts
-- Code: `code/mix_generate_figure.ipynb`
-- Input: `data/日个股数据2.0.csv`
-- Output: `figures/`
-- Description: Generates mixed charts incorporating candlesticks, volume heatmaps, and moving average indicators (time window: 60 days). Each stock corresponds to a folder storing multiple sequential images.
+### Path 2: Full Reproduction from Scratch
+1. **Download MAE Model**
+   - Code: `code/hf_download.ipynb`
+   - Output: `models/new_mae_model/`
 
-### 3. Generate Separate Stock Charts
-- Code: `code/generate_separate_figure.ipynb`
-- Input: `data/日个股数据2.0.csv`
-- Output: `figure_separate/`
-- Description: Generates separate chart data where candlesticks, volume, and technical indicators are isolated. Each stock is stored independently.
+2. **Generate Mixed Stock Charts**
+   - Code: `code/mix_generate_figure.ipynb`
+   - Input: `data/日个股数据2.0.csv`
+   - Output: `figures/` (60-day time window, includes candlesticks, volume heatmaps, and moving averages)
 
-### 4. Feature Extraction from Mixed Charts
-#### MAE Feature Extraction
-- Code: `code/mae_features_npz.ipynb`
-- Input: `figures/` + `models/new_mae_model/`
-- Output: `results/mae_new_npz_features/`
-- Label: Returns (correctly annotated)
+3. **Generate Separate Stock Charts**
+   - Code: `code/generate_separate_figure.ipynb`
+   - Input: `data/日个股数据2.0.csv`
+   - Output: `figure_separate/` (isolated candlestick, volume, and indicator charts)
 
-#### ViT Feature Extraction
-- Code: `code/vit_features_npz.ipynb`
-- Input: `figures/`
-- Output: `results/vit_new_npz_features/`
+4. **Extract Features from Mixed Charts**
+   - MAE: `code/mae_features_npz.ipynb` (labeled with stock returns)
+   - ViT: `code/vit_features_npz.ipynb`
 
-### 5. Feature Extraction from Separate Charts
-#### MAE Feature Extraction
-- Code: `code/f_s_mae.ipynb`
-- Input: `figure_separate/`
-- Output: `results/f_s_mae_features/`
+5. **Extract Features from Separate Charts**
+   - MAE: `code/f_s_mae.ipynb`
+   - ViT: `code/f_s_vit.ipynb`
 
-#### ViT Feature Extraction
-- Code: `code/f_s_vit.ipynb`
-- Input: `figure_separate/`
-- Output: `results/f_s_vit_features/`
-
-### 6. Feature Comparison Experiments
-#### Mixed vs. Separate Charts
-- Code: `code/混合图vs分图.ipynb`
-- Input: All extracted feature files
-- Output: Comparison results of four metrics: variance, similarity, MSE, MAE
-- Conclusion: Mixed-MAE features achieve the best performance.
-
-#### Separate Chart Comparison (ViT vs. MAE)
-- Code: `code/f_s_vit_vs_mae.ipynb`
-- Description: Validates the difference in feature quality between models in the separate chart scenario.
-
-#### Mixed Chart Comparison (MAE vs. ViT)
-- Code: `code/mae_vs_vit.ipynb`
-- Description: Validates the difference in feature quality between models in the mixed chart scenario.
+6. **Run Comparative Experiments**
+   - Mixed vs. Separate Charts: `code/混合图vs分图.ipynb`
+   - Model Comparison (Mixed Charts): `code/mae_vs_vit.ipynb`
+   - Model Comparison (Separate Charts): `code/f_s_vit_vs_mae.ipynb`
 
 ---
 
 ## Final Outputs
-- Mixed and separate stock chart image data  
-- Image features extracted via MAE/ViT (npz format)  
-- Quality comparison metrics for four feature combinations  
+- Mixed and separate stock candlestick chart datasets
+- MAE/ViT extracted image features (npz format)
+- Quantitative feature quality comparison metrics
 - **Optimal feature scheme: Mixed Chart + MAE**
 
 ---
 
 ## Future Work
-1. Time series modality feature extraction  
-2. Multimodal feature fusion  
-3. Return prediction model training and backtesting  
-4. Dataset and model weights release on HuggingFace
+1. Time series modality feature extraction
+2. Multimodal feature fusion architecture design
+3. Stock return prediction model training and backtesting
+4. Extension to larger stock market datasets
+
+---
+
+## Citation
+If you use this dataset or code in your research, please cite:
+```
+@misc{zhang2026multimodal,
+  author = {Zhang, Qingyue},
+  title = {Multimodal Stock Forecasting: Image Modality Feature Extraction and Comparison},
+  year = {2026},
+  publisher = {GitHub},
+  url = {https://github.com/zhangqingyue127/Multimodal-Stock-Forecasting}
+}
+```
 
 ---
 
 ## Note
-The GitHub repository contains only code and project documentation. Large files such as images, features, and model weights will be separately published on the HuggingFace platform.
+This GitHub repository contains only code and documentation. All large files are hosted on Hugging Face for accessibility and reproducibility.
