@@ -14,7 +14,13 @@
 6. 按时间顺序进行 70%/15%/15% 的训练、验证和测试划分，避免未来信息进入训练集。
 7. 分别评估收盘价/收益率回归与每日股票横截面排序。
 
-![多模态股票预测整体框架](docs/figures/overall_multimodal_framework.jpg)
+![LSTM 基线与多模态股票预测系统级框架](docs/figures/system_level_overview.png)
+
+## 模型细节
+
+![多模态股票预测特征提取、融合与双任务框架](docs/figures/overall_multimodal_framework.jpg)
+
+![HGB 横截面排序模型具体实现](docs/figures/hgb_ranking_implementation.png)
 
 ## 主要结果
 
@@ -66,8 +72,6 @@
 
 TopK_Win 中的 K 为每日股票池的前 10%，并非固定股票数量。
 
-![HGB 横截面排序模型具体实现](docs/figures/hgb_ranking_implementation.png)
-
 <table align="center">
   <thead>
     <tr>
@@ -87,8 +91,6 @@ TopK_Win 中的 K 为每日股票池的前 10%，并非固定股票数量。
 </table>
 
 HGB 方案取得最高 RankIC 和 TopK_Win，是主排序模型；CatBoost 获得最高 Spread。表中的 `—` 表示排序方案不输出收益率点预测，因此不报告 Return MSE，并非实验缺失。
-
-![股票预测系统级框架](docs/figures/system_level_overview.png)
 
 ## 仓库结构
 
