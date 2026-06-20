@@ -20,20 +20,51 @@
 
 同一线性探针和数据切分下，MAE 在混合图与分图两种输入中均获得更低的回归误差。`mixed + MAE` 的 MSE、RMSE、MAE 和 R2 综合最优，因此后续主实验优先使用该特征；`separate + MAE` 的方向准确率略高。
 
-| 图像形式 | 编码器 | 特征维度 | MSE | RMSE | MAE | R2 | 方向准确率 |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| 混合图 | ViT | 768 | 0.004484 | 0.066966 | 0.046624 | -0.007553 | 0.5143 |
-| **混合图** | **MAE** | **768** | **0.004455** | **0.066748** | **0.046610** | **-0.001001** | 0.5218 |
-| 分图 | ViT | 2304 | 0.004593 | 0.067774 | 0.047909 | -0.032036 | 0.5200 |
-| 分图 | MAE | 2304 | 0.004546 | 0.067420 | 0.047473 | -0.021284 | **0.5253** |
+<p align="center"><strong>表 1　不同图像形式与视觉编码器的预测结果</strong></p>
+
+<table align="center">
+  <thead>
+    <tr>
+      <th align="center">图像形式</th>
+      <th align="center">编码器</th>
+      <th align="center">特征维度</th>
+      <th align="center">MSE</th>
+      <th align="center">RMSE</th>
+      <th align="center">MAE</th>
+      <th align="center">R2</th>
+      <th align="center">方向准确率</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td align="center">混合图</td><td align="center">ViT</td><td align="center">768</td><td align="center">0.004484</td><td align="center">0.066966</td><td align="center">0.046624</td><td align="center">-0.007553</td><td align="center">0.5143</td></tr>
+    <tr><td align="center"><strong>混合图</strong></td><td align="center"><strong>MAE</strong></td><td align="center">768</td><td align="center"><strong>0.004455</strong></td><td align="center"><strong>0.066748</strong></td><td align="center"><strong>0.046610</strong></td><td align="center"><strong>-0.001001</strong></td><td align="center">0.5218</td></tr>
+    <tr><td align="center">分图</td><td align="center">ViT</td><td align="center">2304</td><td align="center">0.004593</td><td align="center">0.067774</td><td align="center">0.047909</td><td align="center">-0.032036</td><td align="center">0.5200</td></tr>
+    <tr><td align="center">分图</td><td align="center">MAE</td><td align="center">2304</td><td align="center">0.004546</td><td align="center">0.067420</td><td align="center">0.047473</td><td align="center">-0.021284</td><td align="center"><strong>0.5253</strong></td></tr>
+  </tbody>
+</table>
 
 ### 回归与分类
 
-| 任务 | 模型与特征 | MSE | MAE | R2 | AUC | F1 |
-|---|---|---:|---:|---:|---:|---:|
-| 次日收盘价回归 | mixed-MAE 融合 + Ridge 校准 | 91.8196 | 2.1438 | 0.9926 | - | - |
-| 次日收益率回归 | 数值 + mixed-MAE，Ridge 校准 | 0.003075 | 0.037266 | 0.00248 | - | - |
-| 10 日横截面方向分类 | 数值 + Top-48 图像因子，XGBoost GPU | - | - | - | **0.5495** | **0.6459** |
+<p align="center"><strong>表 2　回归与分类任务的主要结果</strong></p>
+
+<table align="center">
+  <thead>
+    <tr>
+      <th align="left">任务</th>
+      <th align="left">模型与特征</th>
+      <th align="center">MSE</th>
+      <th align="center">MAE</th>
+      <th align="center">R2</th>
+      <th align="center">AUC</th>
+      <th align="center">F1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>次日收盘价回归</td><td>mixed-MAE 融合 + Ridge 校准</td><td align="center">91.8196</td><td align="center">2.1438</td><td align="center"><strong>0.9926</strong></td><td align="center">—</td><td align="center">—</td></tr>
+    <tr><td>次日收益率回归</td><td>数值 + mixed-MAE，Ridge 校准</td><td align="center">0.003075</td><td align="center">0.037266</td><td align="center">0.00248</td><td align="center">—</td><td align="center">—</td></tr>
+    <tr><td>10 日横截面方向分类</td><td>数值 + Top-48 图像因子，XGBoost GPU</td><td align="center">—</td><td align="center">—</td><td align="center">—</td><td align="center"><strong>0.5495</strong></td><td align="center"><strong>0.6459</strong></td></tr>
+  </tbody>
+</table>
 
 收盘价 R2 较高与价格序列强自相关和价格尺度有关，不能直接解释为可交易收益；收益率回归 R2 接近零，说明短期收益点预测仍然困难。因此，论文主线将收盘价回归用于刻画趋势拟合能力，将横截面排序用于衡量选股能力。
 
@@ -41,12 +72,27 @@
 
 TopK_Win 中的 K 为每日股票池的前 10%，并非固定股票数量。
 
-| 方案 | Return MSE | AUC | F1 | RankIC | TopK_Win | Spread |
-|---|---:|---:|---:|---:|---:|---:|
-| mixed-MAE + PCA 普通融合 | 0.0030807 | 0.5236 | 0.4730 | -0.0116 | 0.4998 | 0.00193 |
-| 因子筛选 + CatBoost | 0.0030793 | 0.5214 | - | 0.0054 | 0.4902 | 0.00354 |
-| **因子筛选 + 横截面标准化 HGB** | - | - | - | **0.0301** | **0.5263** | 0.00503 |
-| 因子筛选 + 横截面标准化 CatBoost | - | - | - | 0.0196 | 0.5197 | **0.00873** |
+<p align="center"><strong>表 3　不同建模方案的横截面收益排序结果</strong></p>
+
+<table align="center">
+  <thead>
+    <tr>
+      <th align="left">方案</th>
+      <th align="center">Return MSE</th>
+      <th align="center">AUC</th>
+      <th align="center">F1</th>
+      <th align="center">RankIC</th>
+      <th align="center">TopK_Win</th>
+      <th align="center">Spread</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>mixed-MAE + PCA 普通融合</td><td align="center">0.0030807</td><td align="center">0.5236</td><td align="center">0.4730</td><td align="center">-0.0116</td><td align="center">0.4998</td><td align="center">0.00193</td></tr>
+    <tr><td>因子筛选 + CatBoost</td><td align="center">0.0030793</td><td align="center">0.5214</td><td align="center">—</td><td align="center">0.0054</td><td align="center">0.4902</td><td align="center">0.00354</td></tr>
+    <tr><td><strong>因子筛选 + 横截面标准化 HGB</strong></td><td align="center">—</td><td align="center">—</td><td align="center">—</td><td align="center"><strong>0.0301</strong></td><td align="center"><strong>0.5263</strong></td><td align="center">0.00503</td></tr>
+    <tr><td>因子筛选 + 横截面标准化 CatBoost</td><td align="center">—</td><td align="center">—</td><td align="center">—</td><td align="center">0.0196</td><td align="center">0.5197</td><td align="center"><strong>0.00873</strong></td></tr>
+  </tbody>
+</table>
 
 HGB 方案取得最高 RankIC 和 TopK_Win，是主排序模型；CatBoost 获得最高 Spread。表中的 `-` 表示该方案直接优化每日横截面相对顺序，回归和二分类指标不适用于该输出，并非实验缺失。
 
