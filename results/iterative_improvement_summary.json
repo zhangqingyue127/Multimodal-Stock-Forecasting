@@ -1,0 +1,349 @@
+{
+  "baseline": {
+    "model": "RidgeFusion+calibrated",
+    "feature_dir": "/root/autodl-tmp/aligned_features/mixed_mae",
+    "samples": {
+      "total": 309077,
+      "train": 216353,
+      "val": 46361,
+      "test": 46363
+    },
+    "close": {
+      "MAE": 2.14382266998291,
+      "MSE": 91.81957244873047,
+      "RMSE": 9.582252994402229,
+      "R2": 0.992617666721344
+    },
+    "return": {
+      "MAE": 0.03736747056245804,
+      "MSE": 0.003080710070207715,
+      "RMSE": 0.05550414462189031,
+      "R2": 0.0006667971611022949
+    },
+    "classification": {
+      "Acc": 0.5045833962426935,
+      "Prec": 0.567261118450022,
+      "Rec": 0.4055404714122693,
+      "F1": 0.4729583993024483,
+      "AUC": 0.5235833688562794
+    },
+    "ranking": {
+      "RankIC": -0.011592435650527477,
+      "ICIR": -0.07254413515329361,
+      "TopK_Win": 0.49978867173194885,
+      "Spread": 0.0019309308845549822
+    },
+    "reference_file_return_mse": 0.0031112903,
+    "reference_file_auc": 0.5195918199,
+    "reference_file_rankic": -0.0171990457
+  },
+  "stage_results": {
+    "true_ranker": {
+      "stage": "ranker",
+      "model": "torch_listnet_ranker",
+      "feature_dir": "/root/autodl-tmp/aligned_features/mixed_mae",
+      "samples": {
+        "total": 309077,
+        "train": 216353,
+        "val": 46361,
+        "test": 46363
+      },
+      "val_ranking": {
+        "RankIC": -0.05325297638773918,
+        "ICIR": -0.294185608625412,
+        "TopK_Win": 0.45384061336517334,
+        "Spread": -0.0023304896894842386
+      },
+      "return": {
+        "MAE": 0.32371798157691956,
+        "MSE": 0.19187326729297638,
+        "RMSE": 0.43803340887765213,
+        "R2": -61.240623474121094
+      },
+      "classification": {
+        "Acc": 0.5199404697711537,
+        "Prec": 0.5428083120829038,
+        "Rec": 0.7873529296029591,
+        "F1": 0.6426013649136892,
+        "AUC": 0.4875535072300113
+      },
+      "ranking": {
+        "RankIC": -0.01853388361632824,
+        "ICIR": -0.09381912648677826,
+        "TopK_Win": 0.49450409412384033,
+        "Spread": 0.004170446190983057
+      },
+      "vs_baseline": {
+        "return_mse_delta": 0.18879255722276866,
+        "auc_delta": -0.036029861626268145,
+        "rankic_delta": -0.006941447965800762,
+        "spread_delta": 0.002239515306428075,
+        "topk_win_delta": -0.0052845776081085205
+      }
+    },
+    "multi_feature_fusion": {
+      "stage": "multi_feature_fusion",
+      "model": "HGBFusion4+calibrated",
+      "feature_report": [
+        {
+          "dir": "/root/autodl-tmp/aligned_features/mixed_vit",
+          "raw_dim": 768,
+          "pca_dim": 12,
+          "pca_var": 0.5932492613792419
+        },
+        {
+          "dir": "/root/autodl-tmp/aligned_features/mixed_mae",
+          "raw_dim": 768,
+          "pca_dim": 12,
+          "pca_var": 0.6012231111526489
+        },
+        {
+          "dir": "/root/autodl-tmp/aligned_features/separate_vit",
+          "raw_dim": 2304,
+          "pca_dim": 12,
+          "pca_var": 0.46306371688842773
+        },
+        {
+          "dir": "/root/autodl-tmp/aligned_features/separate_mae",
+          "raw_dim": 2304,
+          "pca_dim": 12,
+          "pca_var": 0.5420113205909729
+        }
+      ],
+      "samples": {
+        "total": 309077,
+        "train": 216353,
+        "val": 46361,
+        "test": 46363
+      },
+      "val_return": {
+        "MAE": 0.05015728251396381,
+        "MSE": 0.00608922086531931,
+        "RMSE": 0.07803345990867834,
+        "R2": 0.0009550295665260444
+      },
+      "return": {
+        "MAE": 0.037638139107954924,
+        "MSE": 0.0031078730385498293,
+        "RMSE": 0.05574830076827301,
+        "R2": -0.008144327811494989
+      },
+      "classification": {
+        "Acc": 0.5460388672001381,
+        "Prec": 0.5472817847086853,
+        "Rec": 0.9942942588438988,
+        "F1": 0.7059776762639174,
+        "AUC": 0.488825334824311
+      },
+      "ranking": {
+        "RankIC": -0.004784134216606617,
+        "ICIR": -0.03729228302836418,
+        "TopK_Win": 0.4929980933666229,
+        "Spread": -0.005199507810175419
+      },
+      "vs_baseline": {
+        "return_mse_delta": 2.716296834211424e-05,
+        "auc_delta": -0.03475803403196842,
+        "rankic_delta": 0.00680830143392086,
+        "spread_delta": -0.007130438694730401,
+        "topk_win_delta": -0.006790578365325928
+      },
+      "close": {
+        "MAE": 2.14382266998291,
+        "MSE": 91.81957244873047,
+        "RMSE": 9.582252994402229,
+        "R2": 0.992617666721344
+      }
+    },
+    "cross_sectional_label": {
+      "stage": "cross_sectional_label",
+      "model": "HGBXSecZ",
+      "feature_report": [
+        {
+          "dir": "/root/autodl-tmp/aligned_features/mixed_vit",
+          "raw_dim": 768,
+          "pca_dim": 12,
+          "pca_var": 0.5932492613792419
+        },
+        {
+          "dir": "/root/autodl-tmp/aligned_features/mixed_mae",
+          "raw_dim": 768,
+          "pca_dim": 12,
+          "pca_var": 0.6012231111526489
+        },
+        {
+          "dir": "/root/autodl-tmp/aligned_features/separate_vit",
+          "raw_dim": 2304,
+          "pca_dim": 12,
+          "pca_var": 0.46306371688842773
+        },
+        {
+          "dir": "/root/autodl-tmp/aligned_features/separate_mae",
+          "raw_dim": 2304,
+          "pca_dim": 12,
+          "pca_var": 0.5420113205909729
+        }
+      ],
+      "samples": {
+        "total": 309077,
+        "train": 216353,
+        "val": 46361,
+        "test": 46363
+      },
+      "val_ranking": {
+        "RankIC": 0.025776933878660202,
+        "ICIR": 0.19700787961483002,
+        "TopK_Win": 0.47479861974716187,
+        "Spread": 0.004993626847863197
+      },
+      "classification": {
+        "Acc": 0.5079050104609278,
+        "Prec": 0.5558133539572054,
+        "Rec": 0.5090308110022429,
+        "F1": 0.531394417400949,
+        "AUC": 0.512305893277894
+      },
+      "ranking": {
+        "RankIC": 0.03080746717751026,
+        "ICIR": 0.2519594132900238,
+        "TopK_Win": 0.5154180526733398,
+        "Spread": 0.005982161965221167
+      },
+      "vs_baseline": {
+        "auc_delta": -0.011277475578385432,
+        "rankic_delta": 0.04239990282803774,
+        "spread_delta": 0.004051231080666184,
+        "topk_win_delta": 0.01562938094139099
+      }
+    },
+    "strong_models_stacking": {
+      "stage": "strong_models_stacking",
+      "model": "HGBSquared+calibrated",
+      "feature_report": [
+        {
+          "dir": "/root/autodl-tmp/aligned_features/mixed_vit",
+          "raw_dim": 768,
+          "pca_dim": 12,
+          "pca_var": 0.5932492613792419
+        },
+        {
+          "dir": "/root/autodl-tmp/aligned_features/mixed_mae",
+          "raw_dim": 768,
+          "pca_dim": 12,
+          "pca_var": 0.6012231111526489
+        },
+        {
+          "dir": "/root/autodl-tmp/aligned_features/separate_vit",
+          "raw_dim": 2304,
+          "pca_dim": 12,
+          "pca_var": 0.46306371688842773
+        },
+        {
+          "dir": "/root/autodl-tmp/aligned_features/separate_mae",
+          "raw_dim": 2304,
+          "pca_dim": 12,
+          "pca_var": 0.5420113205909729
+        }
+      ],
+      "samples": {
+        "total": 309077,
+        "train": 216353,
+        "val": 46361,
+        "test": 46363
+      },
+      "val_return": {
+        "MAE": 0.05015242079805866,
+        "MSE": 0.0060887248886256394,
+        "RMSE": 0.07803028186944885,
+        "R2": 0.0010364033633095682
+      },
+      "return": {
+        "MAE": 0.03763778515142634,
+        "MSE": 0.0031078792554343885,
+        "RMSE": 0.05574835652675681,
+        "R2": -0.008146344469456057
+      },
+      "classification": {
+        "Acc": 0.5461251428941182,
+        "Prec": 0.5473456121343445,
+        "Rec": 0.9939794593318381,
+        "F1": 0.7059513994662046,
+        "AUC": 0.4892985277018405
+      },
+      "ranking": {
+        "RankIC": -0.004230971913784742,
+        "ICIR": -0.03403856232762337,
+        "TopK_Win": 0.4915838837623596,
+        "Spread": -0.005327348597347736
+      },
+      "vs_baseline": {
+        "return_mse_delta": 2.7169185226673474e-05,
+        "auc_delta": -0.034284841154438916,
+        "rankic_delta": 0.007361463736742735,
+        "spread_delta": -0.0072582794819027185,
+        "topk_win_delta": -0.008204787969589233
+      }
+    },
+    "rolling_validation_summary": {
+      "ridge_return_mse": {
+        "mean": 0.004716606489364713,
+        "std": 0.002305537861982516,
+        "values": [
+          0.0029815991267964307,
+          0.00797483586349355,
+          0.0031933844778041557
+        ]
+      },
+      "ridge_auc": {
+        "mean": 0.5061298280558538,
+        "std": 0.01965102799230531,
+        "values": [
+          0.5289293819710257,
+          0.5084915774555956,
+          0.48096852474094004
+        ]
+      },
+      "ridge_rankic": {
+        "mean": 0.017073491277794044,
+        "std": 0.018341822048283846,
+        "values": [
+          -0.008754263631999493,
+          0.03206798434257507,
+          0.02790675312280655
+        ]
+      },
+      "hgb_xsec_rankic": {
+        "mean": 0.023692137251297634,
+        "std": 0.007395866568053449,
+        "values": [
+          0.0213004220277071,
+          0.016069943085312843,
+          0.033706046640872955
+        ]
+      },
+      "hgb_xsec_topk_win": {
+        "mean": 0.4969598750273387,
+        "std": 0.07152274745443661,
+        "values": [
+          0.3970235288143158,
+          0.5334076881408691,
+          0.560448408126831
+        ]
+      },
+      "hgb_xsec_spread": {
+        "mean": 0.005333991100390752,
+        "std": 0.002206099567440346,
+        "values": [
+          0.002895630430430174,
+          0.0048676119185984135,
+          0.008238730952143669
+        ]
+      }
+    }
+  },
+  "recommendation": {
+    "best_return_mse_model": "multi_feature_fusion Ridge/Stacked Ridge calibrated",
+    "best_ranking_model": "cross_sectional_label HGBXSecZ",
+    "note": "Use return model for regression metrics and HGBXSecZ for RankIC/TopK/Spread; rolling validation supports HGBXSecZ ranking stability."
+  }
+}

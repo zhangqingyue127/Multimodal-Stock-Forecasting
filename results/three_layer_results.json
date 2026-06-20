@@ -1,0 +1,339 @@
+{
+  "scope": {
+    "csv": "/root/autodl-tmp/Multimodal-Stock-Forecasting/data/日个股数据2.0.csv",
+    "feature_root": "/root/autodl-tmp/aligned_features",
+    "max_samples_for_modeling": 60000,
+    "layers": {
+      "layer1": "diagnostic feature statistics only",
+      "layer2": "frozen image encoder + simple probe models",
+      "layer3": "downstream ablation with numeric time-series features and image features; no text modality available"
+    }
+  },
+  "layer1_diagnostics": {
+    "mixed_vit": {
+      "samples_used": 20000,
+      "feature_dim": 768,
+      "feature_variance": 3.815340042114258,
+      "mean_pairwise_cosine_similarity": 0.8429834326147991,
+      "mean_abs_ic": 0.013929447867068496,
+      "max_abs_ic": 0.0436893608792167,
+      "top50_mean_abs_rank_ic": 0.03706051781773567,
+      "pca_explained_variance_ratio": [
+        0.154197558760643,
+        0.07029727101325989
+      ],
+      "pca_plot": "/root/autodl-tmp/three_layer_eval_fast/pca_mixed_vit.png",
+      "interpretation_limit": "diagnostic only; these metrics do not prove profitable stock prediction."
+    },
+    "mixed_mae": {
+      "samples_used": 20000,
+      "feature_dim": 768,
+      "feature_variance": 0.34366002678871155,
+      "mean_pairwise_cosine_similarity": 0.9974804048085795,
+      "mean_abs_ic": 0.014151750496750872,
+      "max_abs_ic": 0.04348490786748487,
+      "top50_mean_abs_rank_ic": 0.03253422677516937,
+      "pca_explained_variance_ratio": [
+        0.20665758848190308,
+        0.1026429831981659
+      ],
+      "pca_plot": "/root/autodl-tmp/three_layer_eval_fast/pca_mixed_mae.png",
+      "interpretation_limit": "diagnostic only; these metrics do not prove profitable stock prediction."
+    },
+    "separate_vit": {
+      "samples_used": 20000,
+      "feature_dim": 2304,
+      "feature_variance": 3.889768123626709,
+      "mean_pairwise_cosine_similarity": 0.8843194527363823,
+      "mean_abs_ic": 0.01250501362276969,
+      "max_abs_ic": 0.05029018865651997,
+      "top50_mean_abs_rank_ic": 0.0341496504843235,
+      "pca_explained_variance_ratio": [
+        0.11305800080299377,
+        0.05797116085886955
+      ],
+      "pca_plot": "/root/autodl-tmp/three_layer_eval_fast/pca_separate_vit.png",
+      "interpretation_limit": "diagnostic only; these metrics do not prove profitable stock prediction."
+    },
+    "separate_mae": {
+      "samples_used": 20000,
+      "feature_dim": 2304,
+      "feature_variance": 0.35341358184814453,
+      "mean_pairwise_cosine_similarity": 0.9967860414471795,
+      "mean_abs_ic": 0.012998588300302257,
+      "max_abs_ic": 0.04690415476544988,
+      "top50_mean_abs_rank_ic": 0.03433514013886452,
+      "pca_explained_variance_ratio": [
+        0.12402447313070297,
+        0.10231490433216095
+      ],
+      "pca_plot": "/root/autodl-tmp/three_layer_eval_fast/pca_separate_mae.png",
+      "interpretation_limit": "diagnostic only; these metrics do not prove profitable stock prediction."
+    }
+  },
+  "layer2_linear_probe_simple_models": {
+    "mixed_vit": {
+      "samples_used": 60000,
+      "train_samples": 47980,
+      "test_samples": 12020,
+      "split": "chronological",
+      "cutoff_date": "2024-09-06",
+      "models": {
+        "ridge": {
+          "mse": 0.005482515320181847,
+          "rmse": 0.07404400934702177,
+          "mae": 0.04584304243326187,
+          "r2": -0.053661465644836426,
+          "directional_accuracy_from_regression": 0.49683860232945093
+        },
+        "elasticnet": {
+          "mse": 0.005404746159911156,
+          "rmse": 0.07351697871860048,
+          "mae": 0.045072074979543686,
+          "r2": -0.038715362548828125,
+          "directional_accuracy_from_regression": 0.4934276206322795
+        },
+        "mlp_regressor_subsample": {
+          "mse": 0.028236376121640205,
+          "rmse": 0.16803682965838235,
+          "mae": 0.13018302619457245,
+          "r2": -4.426630020141602,
+          "directional_accuracy_from_regression": 0.4913477537437604,
+          "train_samples_used": 12000,
+          "note": "MLP is run as a small nonlinear probe to avoid making the evaluation dominated by probe training time."
+        }
+      },
+      "direction_classifier": {
+        "model": "logistic_regression",
+        "accuracy": 0.4960066555740433,
+        "positive_rate_test": 0.5303660565723793
+      }
+    },
+    "mixed_mae": {
+      "samples_used": 60000,
+      "train_samples": 47980,
+      "test_samples": 12020,
+      "split": "chronological",
+      "cutoff_date": "2024-09-06",
+      "models": {
+        "ridge": {
+          "mse": 0.0054746391251683235,
+          "rmse": 0.07399080432843208,
+          "mae": 0.04565459489822388,
+          "r2": -0.052147746086120605,
+          "directional_accuracy_from_regression": 0.4993344425956739
+        },
+        "elasticnet": {
+          "mse": 0.005372781306505203,
+          "rmse": 0.07329925856722702,
+          "mae": 0.04483060538768768,
+          "r2": -0.032572150230407715,
+          "directional_accuracy_from_regression": 0.4992512479201331
+        },
+        "mlp_regressor_subsample": {
+          "mse": 0.025639260187745094,
+          "rmse": 0.16012264108409247,
+          "mae": 0.12476527690887451,
+          "r2": -3.9275007247924805,
+          "directional_accuracy_from_regression": 0.4954242928452579,
+          "train_samples_used": 12000,
+          "note": "MLP is run as a small nonlinear probe to avoid making the evaluation dominated by probe training time."
+        }
+      },
+      "direction_classifier": {
+        "model": "logistic_regression",
+        "accuracy": 0.5020798668885191,
+        "positive_rate_test": 0.5303660565723793
+      }
+    },
+    "separate_vit": {
+      "samples_used": 60000,
+      "train_samples": 47980,
+      "test_samples": 12020,
+      "split": "chronological",
+      "cutoff_date": "2024-09-06",
+      "models": {
+        "ridge": {
+          "mse": 0.00569542171433568,
+          "rmse": 0.07546801782434517,
+          "mae": 0.04773961752653122,
+          "r2": -0.09457898139953613,
+          "directional_accuracy_from_regression": 0.4936772046589018
+        },
+        "elasticnet": {
+          "mse": 0.005439688917249441,
+          "rmse": 0.07375424677433456,
+          "mae": 0.04544823616743088,
+          "r2": -0.045430898666381836,
+          "directional_accuracy_from_regression": 0.4966722129783694
+        },
+        "mlp_regressor_subsample": {
+          "mse": 0.06942521780729294,
+          "rmse": 0.26348665584293435,
+          "mae": 0.2084018886089325,
+          "r2": -12.342538833618164,
+          "directional_accuracy_from_regression": 0.5004991680532446,
+          "train_samples_used": 12000,
+          "note": "MLP is run as a small nonlinear probe to avoid making the evaluation dominated by probe training time."
+        }
+      },
+      "direction_classifier": {
+        "model": "logistic_regression",
+        "accuracy": 0.5021630615640599,
+        "positive_rate_test": 0.5303660565723793
+      }
+    },
+    "separate_mae": {
+      "samples_used": 60000,
+      "train_samples": 47980,
+      "test_samples": 12020,
+      "split": "chronological",
+      "cutoff_date": "2024-09-06",
+      "models": {
+        "ridge": {
+          "mse": 0.005781942512840033,
+          "rmse": 0.07603908542874535,
+          "mae": 0.04794570058584213,
+          "r2": -0.1112070083618164,
+          "directional_accuracy_from_regression": 0.4959234608985025
+        },
+        "elasticnet": {
+          "mse": 0.005440772511065006,
+          "rmse": 0.07376159238428226,
+          "mae": 0.04540156573057175,
+          "r2": -0.0456390380859375,
+          "directional_accuracy_from_regression": 0.49983361064891846
+        },
+        "mlp_regressor_subsample": {
+          "mse": 0.050149865448474884,
+          "rmse": 0.22394165634931543,
+          "mae": 0.17569155991077423,
+          "r2": -8.638091087341309,
+          "directional_accuracy_from_regression": 0.4884359400998336,
+          "train_samples_used": 12000,
+          "note": "MLP is run as a small nonlinear probe to avoid making the evaluation dominated by probe training time."
+        }
+      },
+      "direction_classifier": {
+        "model": "logistic_regression",
+        "accuracy": 0.49226289517470884,
+        "positive_rate_test": 0.5303660565723793
+      }
+    }
+  },
+  "layer3_downstream_ablation": {
+    "mixed_vit": {
+      "samples_used": 60000,
+      "cutoff_date": "2024-09-06",
+      "note": "No text modality found in this repository, so text ablations are not run.",
+      "experiments": {
+        "numeric_only": {
+          "mse": 0.005345155019313097,
+          "rmse": 0.07311056708378821,
+          "mae": 0.04458333179354668,
+          "r2": -0.02726280689239502,
+          "directional_accuracy_from_regression": 0.48327787021630614
+        },
+        "image_only": {
+          "mse": 0.005482515320181847,
+          "rmse": 0.07404400934702177,
+          "mae": 0.04584304243326187,
+          "r2": -0.053661465644836426,
+          "directional_accuracy_from_regression": 0.49683860232945093
+        },
+        "numeric_plus_image": {
+          "mse": 0.0054994006641209126,
+          "rmse": 0.0741579440391986,
+          "mae": 0.04594149813055992,
+          "r2": -0.05690658092498779,
+          "directional_accuracy_from_regression": 0.49750415973377704
+        }
+      }
+    },
+    "mixed_mae": {
+      "samples_used": 60000,
+      "cutoff_date": "2024-09-06",
+      "note": "No text modality found in this repository, so text ablations are not run.",
+      "experiments": {
+        "numeric_only": {
+          "mse": 0.005345155019313097,
+          "rmse": 0.07311056708378821,
+          "mae": 0.04458333179354668,
+          "r2": -0.02726280689239502,
+          "directional_accuracy_from_regression": 0.48327787021630614
+        },
+        "image_only": {
+          "mse": 0.0054746391251683235,
+          "rmse": 0.07399080432843208,
+          "mae": 0.04565459489822388,
+          "r2": -0.052147746086120605,
+          "directional_accuracy_from_regression": 0.4993344425956739
+        },
+        "numeric_plus_image": {
+          "mse": 0.005498169455677271,
+          "rmse": 0.0741496423165835,
+          "mae": 0.045819588005542755,
+          "r2": -0.05666995048522949,
+          "directional_accuracy_from_regression": 0.49675540765391013
+        }
+      }
+    },
+    "separate_vit": {
+      "samples_used": 60000,
+      "cutoff_date": "2024-09-06",
+      "note": "No text modality found in this repository, so text ablations are not run.",
+      "experiments": {
+        "numeric_only": {
+          "mse": 0.005345155019313097,
+          "rmse": 0.07311056708378821,
+          "mae": 0.04458333179354668,
+          "r2": -0.02726280689239502,
+          "directional_accuracy_from_regression": 0.48327787021630614
+        },
+        "image_only": {
+          "mse": 0.00569542171433568,
+          "rmse": 0.07546801782434517,
+          "mae": 0.04773961752653122,
+          "r2": -0.09457898139953613,
+          "directional_accuracy_from_regression": 0.4936772046589018
+        },
+        "numeric_plus_image": {
+          "mse": 0.005705220624804497,
+          "rmse": 0.07553291087204635,
+          "mae": 0.0478057824075222,
+          "r2": -0.09646224975585938,
+          "directional_accuracy_from_regression": 0.4964226289517471
+        }
+      }
+    },
+    "separate_mae": {
+      "samples_used": 60000,
+      "cutoff_date": "2024-09-06",
+      "note": "No text modality found in this repository, so text ablations are not run.",
+      "experiments": {
+        "numeric_only": {
+          "mse": 0.005345155019313097,
+          "rmse": 0.07311056708378821,
+          "mae": 0.04458333179354668,
+          "r2": -0.02726280689239502,
+          "directional_accuracy_from_regression": 0.48327787021630614
+        },
+        "image_only": {
+          "mse": 0.005781942512840033,
+          "rmse": 0.07603908542874535,
+          "mae": 0.04794570058584213,
+          "r2": -0.1112070083618164,
+          "directional_accuracy_from_regression": 0.4959234608985025
+        },
+        "numeric_plus_image": {
+          "mse": 0.005804140120744705,
+          "rmse": 0.07618490743411523,
+          "mae": 0.04811442643404007,
+          "r2": -0.11547315120697021,
+          "directional_accuracy_from_regression": 0.4930116472545757
+        }
+      }
+    }
+  },
+  "allowed_conclusion": "Use layer 1 only for feature diagnostics. Use layer 2/3 to discuss predictive signal. Only layer 3 ablations can support claims about image modality adding value over numeric baselines."
+}

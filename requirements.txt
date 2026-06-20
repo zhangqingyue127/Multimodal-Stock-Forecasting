@@ -1,0 +1,13 @@
+numpy
+pandas
+scipy
+scikit-learn
+matplotlib
+tqdm
+torch
+timm
+safetensors
+xgboost
+lightgbm
+catboost
+jupyterlab
