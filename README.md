@@ -1,8 +1,8 @@
 # Multimodal Stock Forecasting
 
-本项目研究数值时序与股票技术图像的多模态融合预测。完整流程覆盖原始行情预处理、混合图/分图生成、ViT/MAE 特征提取、图像因子诊断与筛选、特征级融合，以及收盘价回归、收益方向分类和横截面收益排序。
+本项目研究数值时序与股票技术图像的多模态融合预测。完整流程覆盖原始行情预处理、混合图/分图生成、ViT/MAE 特征提取、图像因子诊断与筛选、特征级融合，以及收盘价回归和横截面收益排序。
 
-> 仓库仅提交原始 CSV、源代码和轻量实验结果。生成图片、NPZ 特征、模型权重、日志与缓存均未提交，可按下述流程重新生成。
+> 仓库提交原始 CSV、源代码、框架示意图和轻量实验结果。实验批量生成的股票图像、NPZ 特征、模型权重、日志与缓存均未提交，可按下述流程重新生成。
 
 ## 方法概览
 
@@ -12,15 +12,15 @@
 4. 按 `(stock_id, end_date)` 对齐数值与图像样本，并以 `X = [X_num, X_img]` 进行特征级拼接。
 5. 逐维计算 IC、RankIC、ICIR 与正 IC 比例，使用稳定性较高的 Top-K 图像因子替代或补充 PCA 特征。
 6. 按时间顺序进行 70%/15%/15% 的训练、验证和测试划分，避免未来信息进入训练集。
-7. 分别评估收盘价/收益率回归、收益方向分类与每日股票横截面排序。
+7. 分别评估收盘价/收益率回归与每日股票横截面排序。
+
+![多模态股票预测整体框架](docs/figures/overall_multimodal_framework.jpg)
 
 ## 主要结果
 
 ### ViT 与 MAE、混合图与分图
 
-同一线性探针和数据切分下，MAE 在混合图与分图两种输入中均获得更低的回归误差。`mixed + MAE` 的 MSE、RMSE、MAE 和 R2 综合最优，因此后续主实验优先使用该特征；`separate + MAE` 的方向准确率略高。
-
-<p align="center"><strong>表 1　不同图像形式与视觉编码器的预测结果</strong></p>
+同一线性探针和数据切分下，MAE 在混合图与分图两种输入中均获得更低的回归误差。`mixed + MAE` 的 MSE、RMSE、MAE 和 R2 综合最优，因此后续主实验优先使用该特征。
 
 <table align="center">
   <thead>
@@ -32,20 +32,17 @@
       <th align="center">RMSE</th>
       <th align="center">MAE</th>
       <th align="center">R2</th>
-      <th align="center">方向准确率</th>
     </tr>
   </thead>
   <tbody>
-    <tr><td align="center">混合图</td><td align="center">ViT</td><td align="center">768</td><td align="center">0.004484</td><td align="center">0.066966</td><td align="center">0.046624</td><td align="center">-0.007553</td><td align="center">0.5143</td></tr>
-    <tr><td align="center"><strong>混合图</strong></td><td align="center"><strong>MAE</strong></td><td align="center">768</td><td align="center"><strong>0.004455</strong></td><td align="center"><strong>0.066748</strong></td><td align="center"><strong>0.046610</strong></td><td align="center"><strong>-0.001001</strong></td><td align="center">0.5218</td></tr>
-    <tr><td align="center">分图</td><td align="center">ViT</td><td align="center">2304</td><td align="center">0.004593</td><td align="center">0.067774</td><td align="center">0.047909</td><td align="center">-0.032036</td><td align="center">0.5200</td></tr>
-    <tr><td align="center">分图</td><td align="center">MAE</td><td align="center">2304</td><td align="center">0.004546</td><td align="center">0.067420</td><td align="center">0.047473</td><td align="center">-0.021284</td><td align="center"><strong>0.5253</strong></td></tr>
+    <tr><td align="center">混合图</td><td align="center">ViT</td><td align="center">768</td><td align="center">0.004484</td><td align="center">0.066966</td><td align="center">0.046624</td><td align="center">-0.007553</td></tr>
+    <tr><td align="center"><strong>混合图</strong></td><td align="center"><strong>MAE</strong></td><td align="center">768</td><td align="center"><strong>0.004455</strong></td><td align="center"><strong>0.066748</strong></td><td align="center"><strong>0.046610</strong></td><td align="center"><strong>-0.001001</strong></td></tr>
+    <tr><td align="center">分图</td><td align="center">ViT</td><td align="center">2304</td><td align="center">0.004593</td><td align="center">0.067774</td><td align="center">0.047909</td><td align="center">-0.032036</td></tr>
+    <tr><td align="center">分图</td><td align="center">MAE</td><td align="center">2304</td><td align="center">0.004546</td><td align="center">0.067420</td><td align="center">0.047473</td><td align="center">-0.021284</td></tr>
   </tbody>
 </table>
 
-### 回归与分类
-
-<p align="center"><strong>表 2　回归与分类任务的主要结果</strong></p>
+### 回归结果
 
 <table align="center">
   <thead>
@@ -55,14 +52,11 @@
       <th align="center">MSE</th>
       <th align="center">MAE</th>
       <th align="center">R2</th>
-      <th align="center">AUC</th>
-      <th align="center">F1</th>
     </tr>
   </thead>
   <tbody>
-    <tr><td>次日收盘价回归</td><td>mixed-MAE 融合 + Ridge 校准</td><td align="center">91.8196</td><td align="center">2.1438</td><td align="center"><strong>0.9926</strong></td><td align="center">—</td><td align="center">—</td></tr>
-    <tr><td>次日收益率回归</td><td>数值 + mixed-MAE，Ridge 校准</td><td align="center">0.003075</td><td align="center">0.037266</td><td align="center">0.00248</td><td align="center">—</td><td align="center">—</td></tr>
-    <tr><td>10 日横截面方向分类</td><td>数值 + Top-48 图像因子，XGBoost GPU</td><td align="center">—</td><td align="center">—</td><td align="center">—</td><td align="center"><strong>0.5495</strong></td><td align="center"><strong>0.6459</strong></td></tr>
+    <tr><td>次日收盘价回归</td><td>mixed-MAE 融合 + Ridge 校准</td><td align="center">91.8196</td><td align="center">2.1438</td><td align="center"><strong>0.9926</strong></td></tr>
+    <tr><td>次日收益率回归</td><td>数值 + mixed-MAE，Ridge 校准</td><td align="center"><strong>0.003075</strong></td><td align="center"><strong>0.037266</strong></td><td align="center">0.00248</td></tr>
   </tbody>
 </table>
 
@@ -72,36 +66,37 @@
 
 TopK_Win 中的 K 为每日股票池的前 10%，并非固定股票数量。
 
-<p align="center"><strong>表 3　不同建模方案的横截面收益排序结果</strong></p>
+![HGB 横截面排序模型具体实现](docs/figures/hgb_ranking_implementation.png)
 
 <table align="center">
   <thead>
     <tr>
       <th align="left">方案</th>
       <th align="center">Return MSE</th>
-      <th align="center">AUC</th>
-      <th align="center">F1</th>
       <th align="center">RankIC</th>
       <th align="center">TopK_Win</th>
       <th align="center">Spread</th>
     </tr>
   </thead>
   <tbody>
-    <tr><td>mixed-MAE + PCA 普通融合</td><td align="center">0.0030807</td><td align="center">0.5236</td><td align="center">0.4730</td><td align="center">-0.0116</td><td align="center">0.4998</td><td align="center">0.00193</td></tr>
-    <tr><td>因子筛选 + CatBoost</td><td align="center">0.0030793</td><td align="center">0.5214</td><td align="center">—</td><td align="center">0.0054</td><td align="center">0.4902</td><td align="center">0.00354</td></tr>
-    <tr><td><strong>因子筛选 + 横截面标准化 HGB</strong></td><td align="center">—</td><td align="center">—</td><td align="center">—</td><td align="center"><strong>0.0301</strong></td><td align="center"><strong>0.5263</strong></td><td align="center">0.00503</td></tr>
-    <tr><td>因子筛选 + 横截面标准化 CatBoost</td><td align="center">—</td><td align="center">—</td><td align="center">—</td><td align="center">0.0196</td><td align="center">0.5197</td><td align="center"><strong>0.00873</strong></td></tr>
+    <tr><td>mixed-MAE + PCA 普通融合</td><td align="center">0.0030807</td><td align="center">-0.0116</td><td align="center">0.4998</td><td align="center">0.00193</td></tr>
+    <tr><td>因子筛选 + CatBoost</td><td align="center"><strong>0.0030793</strong></td><td align="center">0.0054</td><td align="center">0.4902</td><td align="center">0.00354</td></tr>
+    <tr><td><strong>因子筛选 + 横截面标准化 HGB</strong></td><td align="center">—</td><td align="center"><strong>0.0301</strong></td><td align="center"><strong>0.5263</strong></td><td align="center">0.00503</td></tr>
+    <tr><td>因子筛选 + 横截面标准化 CatBoost</td><td align="center">—</td><td align="center">0.0196</td><td align="center">0.5197</td><td align="center"><strong>0.00873</strong></td></tr>
   </tbody>
 </table>
 
-HGB 方案取得最高 RankIC 和 TopK_Win，是主排序模型；CatBoost 获得最高 Spread。表中的 `-` 表示该方案直接优化每日横截面相对顺序，回归和二分类指标不适用于该输出，并非实验缺失。
+HGB 方案取得最高 RankIC 和 TopK_Win，是主排序模型；CatBoost 获得最高 Spread。表中的 `—` 表示排序方案不输出收益率点预测，因此不报告 Return MSE，并非实验缺失。
+
+![股票预测系统级框架](docs/figures/system_level_overview.png)
 
 ## 仓库结构
 
 ```text
 .
-|-- code/           # 制图、特征提取、诊断、回归、分类与排序代码
+|-- code/           # 制图、特征提取、诊断、回归与排序代码
 |-- data/           # 唯一提交的数据：原始行情 CSV
+|-- docs/figures/   # README 使用的三张框架示意图
 |-- results/        # 轻量 JSON 实验结果，不含图片和 NPZ
 |-- requirements.txt
 `-- README.md
@@ -117,7 +112,7 @@ HGB 方案取得最高 RankIC 和 TopK_Win，是主排序模型；CatBoost 获�
 | 三层评估 | `code/three_layer_evaluation.py` |
 | 因子诊断与回测 | `code/factor_diagnostics_backtest.py` |
 | 排序与融合改进 | `code/iterative_improvement.py`、`code/ranker_auc_search.py` |
-| 回归/分类调参 | `code/multi_metric_model_tuning.py`、`code/gpu_auc_search.py`、`code/focused_auc_horizon_search.py` |
+| 回归与模型调参 | `code/multi_metric_model_tuning.py`、`code/gpu_auc_search.py`、`code/focused_auc_horizon_search.py` |
 
 ## 环境安装
 
@@ -171,9 +166,9 @@ python code/three_layer_evaluation.py \
   --out-dir artifacts/three_layer_eval
 ```
 
-### 5. 最新分类与排序搜索
+### 5. 最新排序搜索
 
-`focused_auc_horizon_search.py` 与 `ranker_auc_search.py` 支持环境变量覆盖路径：
+`ranker_auc_search.py` 支持环境变量覆盖路径：
 
 ```bash
 export STOCK_REPO_ROOT="$PWD"
@@ -181,7 +176,6 @@ export STOCK_ARTIFACT_ROOT="$PWD/artifacts"
 export STOCK_FEATURE_ROOT="$PWD/artifacts/aligned_features"
 export STOCK_DIAGNOSTICS="$PWD/artifacts/factor_diagnostics/factor_diagnostics_all.csv"
 
-python code/focused_auc_horizon_search.py
 python code/ranker_auc_search.py
 ```
 

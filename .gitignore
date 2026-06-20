@@ -17,6 +17,9 @@ aligned_figures/
 aligned_features/
 factor_diagnostics/
 artifacts/
+!docs/figures/
+!docs/figures/*.png
+!docs/figures/*.jpg
 
 # Model files and logs
 *.pt
