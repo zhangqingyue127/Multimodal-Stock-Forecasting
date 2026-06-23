@@ -1,3 +1,5 @@
+"""分阶段改进实验：多特征融合、横截面目标、强模型、滚动验证和原生排序器。"""
+
 import argparse
 import json
 from pathlib import Path
@@ -259,6 +261,7 @@ def calibrate_by_val(y_train, y_val, val_pred, test_pred):
 
 
 def run_fusion(args):
+    """融合四类视觉表征，比较Ridge、HGB及二者加权组合。"""
     repo_root = Path(__file__).resolve().parents[1]
     csv_path = find_csv(repo_root)
     feature_dirs = [Path(p) for p in args.feature_dirs.split(",")]
@@ -354,6 +357,7 @@ def run_fusion(args):
 
 
 def prepare_fused_features(repo_root, feature_dirs, pca_components):
+    """按时间切分拟合PCA，并构造多来源图像特征与数值特征的融合矩阵。"""
     csv_path = find_csv(repo_root)
     feature_dirs = [Path(p) for p in feature_dirs]
     x_first, y_ret, meta = load_feature_dir(feature_dirs[0])
@@ -387,6 +391,7 @@ def prepare_fused_features(repo_root, feature_dirs, pca_components):
 
 
 def cross_sectional_z(meta_subset, y):
+    """逐日标准化收益目标，使模型关注同日股票相对强弱。"""
     df = meta_subset[["end_date"]].copy()
     df["y"] = y
     z = np.zeros(len(df), dtype=np.float32)
@@ -398,6 +403,7 @@ def cross_sectional_z(meta_subset, y):
 
 
 def run_xsec(args):
+    """训练横截面Ridge/HGB打分模型，并以验证集RankIC选择方案。"""
     repo_root = Path(__file__).resolve().parents[1]
     x, y, meta, samples, report = prepare_fused_features(repo_root, args.feature_dirs.split(","), args.pca_components)
     y_z = {k: cross_sectional_z(meta[k], y[k]) for k in ("train", "val", "test")}
@@ -498,6 +504,7 @@ def train_torch_mlp_regressor(x_train, y_train, x_val, args):
 
 
 def run_strong(args):
+    """比较不同损失的HGB和小型神经网络，检验非线性模型上限。"""
     # Stronger downstream models on the fused feature set, followed by validation stacking.
     repo_root = Path(__file__).resolve().parents[1]
     x, y, meta, samples, report = prepare_fused_features(repo_root, args.feature_dirs.split(","), args.pca_components)
@@ -651,6 +658,7 @@ def date_indices(meta, dates):
 
 
 def run_rolling(args):
+    """执行walk-forward滚动验证，检查排序效果是否依赖单次切分。"""
     repo_root = Path(__file__).resolve().parents[1]
     # Fit the representation on the earliest 60% dates to avoid peeking at late test windows.
     temp_x, temp_y, temp_meta = load_feature_dir(Path(args.feature_dir))
@@ -736,6 +744,7 @@ def run_rolling(args):
 
 
 def run_ranker(args):
+    """训练原生排序模型与ListNet模型，并与点式HGB排序方案比较。"""
     import importlib.util
 
     repo_root = Path(__file__).resolve().parents[1]
@@ -920,6 +929,7 @@ def run_ranker(args):
 
 
 def main():
+    """根据stage参数调度不同改进实验，便于逐项比较增益。"""
     ap = argparse.ArgumentParser()
     ap.add_argument("--stage", choices=["ranker", "fusion", "xsec", "strong", "rolling"], required=True)
     ap.add_argument("--feature-dir", default="/root/autodl-tmp/aligned_features/mixed_mae")
@@ -934,6 +944,7 @@ def main():
     ap.add_argument("--batch-size", type=int, default=4096)
     ap.add_argument("--out", default="/root/autodl-tmp/iterative_ranker_results.json")
     args = ap.parse_args()
+    # 每个stage对应一组独立实验，避免一次运行占用过多显存和时间。
     if args.stage == "ranker":
         run_ranker(args)
     elif args.stage == "fusion":

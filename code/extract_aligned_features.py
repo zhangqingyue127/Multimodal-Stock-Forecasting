@@ -1,3 +1,5 @@
+"""使用冻结的ViT/MAE编码器提取混合图和分图特征。"""
+
 import argparse
 import gc
 import os
@@ -20,6 +22,7 @@ STD = torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1)
 
 
 def load_model(encoder: str, device: torch.device, checkpoint: str | None):
+    """加载预训练编码器并移除分类头，只输出图像表征。"""
     os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")
     import timm
 
@@ -36,6 +39,7 @@ def load_model(encoder: str, device: torch.device, checkpoint: str | None):
 
 
 def preprocess(images: np.ndarray, device: torch.device):
+    """将NHWC图像转换为NCHW张量，并采用ImageNet统计量标准化。"""
     x = torch.from_numpy(images).to(device=device, dtype=torch.float32)
     x = x.permute(0, 3, 1, 2) / 255.0
     if x.shape[-2:] != (224, 224):
@@ -47,6 +51,7 @@ def preprocess(images: np.ndarray, device: torch.device):
 
 @torch.inference_mode()
 def extract_batches(model, images: np.ndarray, batch_size: int, device: torch.device):
+    """冻结模型参数，分批推理以控制GPU显存占用。"""
     feats = []
     for start in range(0, len(images), batch_size):
         batch = preprocess(images[start : start + batch_size], device)
@@ -67,11 +72,13 @@ def read_components(data):
 
 
 def process_file(path: Path, out_path: Path, source: str, model, batch_size: int, device: torch.device, aggregate: str):
+    """提取单只股票全部样本的图像特征，并保留标签与日期索引。"""
     data = np.load(path, allow_pickle=False)
     labels = np.asarray(data["label"], dtype=np.float32)
     dates = data["end_date"] if "end_date" in data else np.arange(len(labels)).astype(str)
 
     if source == "mixed":
+        # 混合图每个样本只有一张图，因此输出768维单图特征。
         feature = extract_batches(model, np.asarray(data["mixed"], dtype=np.uint8), batch_size, device)
         component_names = np.asarray(["mixed"])
     else:
@@ -81,6 +88,7 @@ def process_file(path: Path, out_path: Path, source: str, model, batch_size: int
             feats = extract_batches(model, np.asarray(data[name], dtype=np.uint8), batch_size, device)
             component_feats.append(feats)
             gc.collect()
+        # 分图分别编码K线、成交量和均线；concat时得到3*768=2304维。
         stacked = np.stack(component_feats, axis=1)
         if aggregate == "concat":
             feature = stacked.reshape(stacked.shape[0], -1)
@@ -104,6 +112,7 @@ def process_file(path: Path, out_path: Path, source: str, model, batch_size: int
 
 
 def main():
+    """主流程：选择编码器与图像类型 -> GPU批量提取 -> 按股票保存特征。"""
     parser = argparse.ArgumentParser(description="Extract ViT/MAE features from aligned stock figures.")
     parser.add_argument("--fig-root", default="/root/autodl-tmp/aligned_figures")
     parser.add_argument("--out-root", default="/root/autodl-tmp/aligned_features")
@@ -132,6 +141,7 @@ def main():
     if not files:
         raise FileNotFoundError(f"No figure npz files found in {fig_dir}")
 
+    # 编码器只做特征提取，不参与下游预测模型的联合训练。
     model = load_model(args.encoder, device, args.checkpoint)
     written = skipped = 0
     for path in tqdm(files, desc=f"Extracting {args.source}-{args.encoder}"):

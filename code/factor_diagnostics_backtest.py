@@ -1,3 +1,5 @@
+"""主排序流水线：图像因子诊断、Top-K筛选、多模态融合、横截面HGB与回测。"""
+
 import argparse
 import json
 from pathlib import Path
@@ -105,6 +107,7 @@ def build_numeric(csv_path: Path):
 
 
 def split_70_15_15(meta):
+    """按日期顺序划分训练/验证/测试集，禁止随机打乱时间序列。"""
     order = np.lexsort((meta["stock_id"].to_numpy(), meta["end_date"].to_numpy()))
     n = len(order)
     n_train = int(n * 0.70)
@@ -122,6 +125,7 @@ def corr_vec(x, y):
 
 
 def daily_factor_stats(x_train, y_train, meta_train, min_names):
+    """逐交易日计算每个图像维度的IC、RankIC及其稳定性指标。"""
     ic_list, ric_list = [], []
     for _, pos in tqdm(meta_train.groupby("end_date", sort=False).groups.items(), desc="daily IC"):
         idx = np.asarray(list(pos), dtype=np.int64)
@@ -153,6 +157,7 @@ def daily_factor_stats(x_train, y_train, meta_train, min_names):
             "score_abs_rankicir": np.abs(ric_mean / ric_std),
         }
     )
+    # 绝对RankICIR兼顾排序相关性大小与跨交易日稳定性。
     return out.sort_values("score_abs_rankicir", ascending=False)
 
 
@@ -167,6 +172,7 @@ def reg_metrics(y, pred):
 
 
 def rank_metrics(meta_test, y_true, score, top_frac=0.1):
+    """按日计算RankIC、Top 10%胜率及头尾组合收益差。"""
     df = meta_test.copy()
     df["y"] = y_true
     df["score"] = score
@@ -255,6 +261,7 @@ def calibrate_by_val(y_train, y_val, val_pred, test_pred):
 
 
 def cross_sectional_z(meta_subset, y):
+    """在每个交易日内部标准化收益，削弱市场整体涨跌影响。"""
     df = meta_subset[["end_date"]].copy()
     df["y"] = y
     z = np.zeros(len(df), dtype=np.float32)
@@ -266,6 +273,7 @@ def cross_sectional_z(meta_subset, y):
 
 
 def fit_predict_models(x_train, y_train, x_val, y_val, x_test):
+    """在同一融合特征上比较线性模型和多种梯度提升模型。"""
     results = {}
     ridge = make_pipeline(StandardScaler(), Ridge(alpha=15.0))
     ridge.fit(x_train, y_train)
@@ -298,6 +306,7 @@ def fit_predict_models(x_train, y_train, x_val, y_val, x_test):
 
 
 def main():
+    """主流程：时间切分 -> 因子筛选 -> 特征融合 -> 原始回归/横截面排序 -> 回测汇总。"""
     ap = argparse.ArgumentParser()
     ap.add_argument("--feature-dirs", default="/root/autodl-tmp/aligned_features/mixed_vit,/root/autodl-tmp/aligned_features/mixed_mae,/root/autodl-tmp/aligned_features/separate_vit,/root/autodl-tmp/aligned_features/separate_mae")
     ap.add_argument("--top-ks", default="32,64,128")
@@ -309,6 +318,7 @@ def main():
     feature_dirs = [Path(p) for p in args.feature_dirs.split(",")]
     top_ks = [int(x) for x in args.top_ks.split(",")]
 
+    # 1. 读取统一标签和样本索引，并按时间顺序完成70/15/15切分。
     x0, y, meta = load_feature_dir(feature_dirs[0])
     del x0
     train, val, test = split_70_15_15(meta)
@@ -317,12 +327,14 @@ def main():
     meta_test = meta.iloc[test].reset_index(drop=True)
     csv_path = find_csv(repo_root)
     num, num_cols = build_numeric(csv_path)
+    # 2. 使用股票代码和窗口结束日期对齐数值模态与图像模态。
     data_meta = meta.merge(num, on=["stock_id", "end_date"], how="left")
     x_num = data_meta[num_cols].replace([np.inf, -np.inf], np.nan).fillna(0.0).to_numpy(np.float32)
 
     all_diag = []
     selected = {k: [] for k in top_ks}
     cache_selected = {}
+    # 3. 只在训练集上诊断各图像维度，避免用测试集选择因子。
     for fdir in feature_dirs:
         x, y_check, _ = load_feature_dir(fdir)
         if len(y_check) != len(y) or not np.allclose(y_check[:1000], y[:1000]):
@@ -347,6 +359,7 @@ def main():
     all_diag_df = pd.concat(all_diag, ignore_index=True).sort_values("score_abs_rankicir", ascending=False)
     all_diag_df.to_csv(out_dir / "factor_diagnostics_all.csv", index=False)
 
+    # 4. 对Top-32/64/128分别拼接数值因子与四类候选图像因子。
     experiments = []
     for k in top_ks:
         parts_train = [x_num[train]]
@@ -356,9 +369,11 @@ def main():
             parts_train.append(cache_selected[name]["train"][:, :k])
             parts_val.append(cache_selected[name]["val"][:, :k])
             parts_test.append(cache_selected[name]["test"][:, :k])
+        # 特征级融合：X_fusion = [X_num, X_img]。
         x_train = np.concatenate(parts_train, axis=1)
         x_val = np.concatenate(parts_val, axis=1)
         x_test = np.concatenate(parts_test, axis=1)
+        # 5a. 原始收益回归用于MSE等指标；5b. 横截面z-score用于排序打分。
         raw_models = fit_predict_models(x_train, y[train], x_val, y[val], x_test)
         y_z_train = cross_sectional_z(meta_train, y[train])
         rank_models = fit_predict_models(x_train, y_z_train, x_val, cross_sectional_z(meta_val, y[val]), x_test)
@@ -395,6 +410,7 @@ def main():
             experiments.append(item)
             print(json.dumps(item, ensure_ascii=False, indent=2))
 
+    # 6. 分别选择回归、排序相关性和多空夏普表现最好的方案。
     best_return = min([e for e in experiments if "return" in e], key=lambda e: e["return"]["MSE"])
     best_rankic = max(experiments, key=lambda e: e["ranking"]["RankIC"])
     best_sharpe = max(experiments, key=lambda e: e["backtest"]["long_short"]["sharpe"])

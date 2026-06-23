@@ -1,3 +1,5 @@
+"""根据OHLCV历史窗口生成严格对齐的混合图、分图和未来收益标签。"""
+
 import argparse
 import gc
 import json
@@ -186,6 +188,7 @@ def load_data(csv_path: Path) -> pd.DataFrame:
 
 
 def future_returns(close, horizon):
+    """计算未来horizon日收益率，标签只使用窗口结束日之后的数据。"""
     close = np.asarray(close, dtype=np.float32)
     out = np.full(len(close), np.nan, dtype=np.float32)
     for i in range(len(close) - horizon):
@@ -194,11 +197,13 @@ def future_returns(close, horizon):
 
 
 def process_stock(sid, group, mixed_dir, separate_dir, window, horizon, size, overwrite):
+    """处理单只股票，并保证混合图与三张分图逐样本一一对应。"""
     mixed_path = mixed_dir / f"{sid}.npz"
     separate_path = separate_dir / f"{sid}.npz"
     if not overwrite and mixed_path.exists() and separate_path.exists():
         return sid, 0, "skipped"
 
+    # 先按日期排序，再用过去window日构造输入、未来horizon日构造标签。
     group = group.sort_values(DATE_COL).reset_index(drop=True)
     labels_by_end = future_returns(group[CLOSE_COL].to_numpy(dtype=np.float32), horizon)
     valid_ends = [end for end in range(window - 1, len(group) - horizon) if np.isfinite(labels_by_end[end])]
@@ -227,6 +232,7 @@ def process_stock(sid, group, mixed_dir, separate_dir, window, horizon, size, ov
     date_arr = np.asarray(end_dates)
     component_arr = np.asarray(COMPONENT_NAMES)
 
+    # 混合图和分图保存相同的label/end_date，这是后续模态对齐的基础。
     np.savez_compressed(
         mixed_path,
         mixed=np.asarray(arrays["mixed"], dtype=np.uint8),
@@ -247,6 +253,7 @@ def process_stock(sid, group, mixed_dir, separate_dir, window, horizon, size, ov
 
 
 def main():
+    """主流程：读取行情 -> 按股票分组 -> 并行制图 -> 保存生成清单。"""
     parser = argparse.ArgumentParser(description="Generate aligned mixed and separate stock chart images.")
     parser.add_argument("--csv", default=None)
     parser.add_argument("--out-root", default="/root/autodl-tmp/aligned_figures")
@@ -271,6 +278,7 @@ def main():
     print(f"Separate output: {separate_dir}")
     print(f"Components: {', '.join(COMPONENT_NAMES)}")
 
+    # 1. 清洗行情并按股票代码拆分，避免不同股票窗口相互混合。
     df = load_data(csv_path)
     groups = list(df.groupby(STOCK_COL, sort=True))
     if args.max_stocks is not None:
@@ -278,6 +286,7 @@ def main():
     del df
     gc.collect()
 
+    # 2. 支持单进程调试和多进程批量生成两种运行方式。
     summary = {"written": 0, "skipped": 0, "empty": 0, "samples": 0}
     if args.workers <= 1:
         for sid, group in tqdm(groups, desc="Generating aligned figures"):
@@ -315,6 +324,7 @@ def main():
                 summary[status] += 1
                 summary["samples"] += count
 
+    # 3. 记录窗口、预测期和样本量，便于实验复现与答辩核验。
     manifest = {
         "csv": str(csv_path),
         "window": args.window,

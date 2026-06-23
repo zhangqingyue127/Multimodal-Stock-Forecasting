@@ -1,3 +1,5 @@
+"""统一比较mixed/separate与ViT/MAE四类图像特征的简单回归效果。"""
+
 import argparse
 import json
 from pathlib import Path
@@ -12,6 +14,7 @@ from tqdm import tqdm
 
 
 def load_feature_dir(path: Path, max_stocks: int | None):
+    """合并一个特征目录下的逐股票NPZ，形成统一样本矩阵。"""
     files = sorted(path.glob("*.npz"))
     if max_stocks is not None:
         files = files[:max_stocks]
@@ -42,6 +45,7 @@ def sample_data(x, y, max_samples, seed):
 
 
 def evaluate(x, y, max_samples, seed):
+    """在相同采样、切分和Ridge探针下计算四项回归指标。"""
     x, y = sample_data(x, y, max_samples, seed)
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=seed)
     model = make_pipeline(
@@ -75,6 +79,7 @@ def winner(vit, mae):
 
 
 def main():
+    """主流程：遍历四种组合 -> 统一评估 -> 按MSE选出ViT/MAE胜者。"""
     parser = argparse.ArgumentParser(description="Compare ViT vs MAE feature quality for mixed and separate figures.")
     parser.add_argument("--feature-root", default="/root/autodl-tmp/aligned_features")
     parser.add_argument("--max-stocks", type=int, default=None)
@@ -85,12 +90,14 @@ def main():
 
     root = Path(args.feature_root)
     results = {}
+    # 四组实验只改变图像形式和编码器，其余评估条件保持一致。
     for source in ("mixed", "separate"):
         results[source] = {}
         for encoder in ("vit", "mae"):
             feat_dir = root / f"{source}_{encoder}"
             x, y, _ = load_feature_dir(feat_dir, args.max_stocks)
             results[source][encoder] = evaluate(x, y, args.max_samples, args.seed)
+        # 两类图像中MAE均胜过ViT；四组综合误差最低的是mixed+MAE。
         results[source]["winner_by_mse"] = winner(results[source]["vit"], results[source]["mae"])
 
     out_path = Path(args.out)

@@ -1,3 +1,5 @@
+"""回归参考流程：mixed-MAE图像特征与数值因子融合、验证集选模和预测校准。"""
+
 import argparse
 import json
 from pathlib import Path
@@ -177,6 +179,7 @@ def rank_metrics(meta_test, y_true, score, top_frac=0.1):
 
 
 def main():
+    """主流程：对齐双模态 -> 训练集PCA -> Ridge/HGB选模 -> 校准 -> 输出指标。"""
     ap = argparse.ArgumentParser()
     ap.add_argument("--feature-dir", default="/root/autodl-tmp/aligned_features/mixed_mae")
     ap.add_argument("--out", default="/root/autodl-tmp/reference_like_improved_results.txt")
@@ -186,10 +189,12 @@ def main():
     repo_root = Path(__file__).resolve().parents[1]
     csv_path = find_csv(repo_root)
     print(f"📂 加载特征: {args.feature_dir}")
+    # 1. 默认读取mixed-MAE图像特征及其未来收益标签。
     x_img, y_ret, meta = load_feature_dir(Path(args.feature_dir))
     print(f"✅ 原始样本数: {len(y_ret)}")
 
     num, num_cols = build_numeric(csv_path)
+    # 2. 按股票代码和结束日期对齐数值与图像模态。
     data_meta = meta.merge(num, on=["stock_id", "end_date"], how="left")
     x_num = data_meta[num_cols].replace([np.inf, -np.inf], np.nan).fillna(0.0).to_numpy(np.float32)
     close_now = data_meta["close_now"].to_numpy(np.float32)
@@ -200,7 +205,7 @@ def main():
     threshold = float(np.median(y_ret[train]))
     print(f"分类阈值(训练集收益率中位数): {threshold:.6f} | 测试正类比例: {float((y_ret[test] > threshold).mean()):.2%}")
 
-    # PCA is fit on train only, then used as compact image representation.
+    # 3. PCA只在训练集拟合，随后统一变换验证集和测试集，避免信息泄露。
     pca = PCA(n_components=args.pca_components, random_state=42)
     scaler_img = StandardScaler()
     x_img_train_scaled = scaler_img.fit_transform(x_img[train])
@@ -208,11 +213,12 @@ def main():
     def img_pca(idx):
         return pca.transform(scaler_img.transform(x_img[idx])).astype(np.float32)
 
+    # 4. 特征级融合：拼接数值因子与压缩后的图像特征。
     x_train = np.concatenate([x_num[train], img_pca(train)], axis=1)
     x_val = np.concatenate([x_num[val], img_pca(val)], axis=1)
     x_test = np.concatenate([x_num[test], img_pca(test)], axis=1)
 
-    # Try a small validation tournament and select by val MSE.
+    # 5. 使用验证集MSE在Ridge和HGB之间选择模型，测试集不参与选模。
     candidates = {}
     ridge = make_pipeline(StandardScaler(), Ridge(alpha=20.0))
     ridge.fit(x_train, y_ret[train])
@@ -236,6 +242,7 @@ def main():
     raw_val_mse = mean_squared_error(y_ret[val], best_val_pred)
     print(f"选择模型: {best_name} | Val MSE: {raw_val_mse:.6f}")
 
+    # 6. 用验证集决定是否进行线性校准，再将同一规则应用到测试集。
     raw_test_score = best_model.predict(x_test)
     train_mean = float(np.mean(y_ret[train]))
     val_pred = np.asarray(best_val_pred, dtype=np.float64)
@@ -261,6 +268,7 @@ def main():
     else:
         test_score = raw_test_score
     print(f"收益率预测校准: {score_mode} | Val MSE: {mean_squared_error(y_val, score_val_pred):.6f}")
+    # 收盘价回归是数值特征基线，不应将其高R2解释为图像模态增益。
     close_model = make_pipeline(StandardScaler(), Ridge(alpha=10.0))
     close_model.fit(x_num[train], future_close[train])
     close_pred = close_model.predict(x_num[test])

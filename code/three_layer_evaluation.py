@@ -1,3 +1,5 @@
+"""三层评估：特征诊断、冻结特征简单探针，以及数值/图像/融合消融实验。"""
+
 import argparse
 import json
 from pathlib import Path
@@ -109,6 +111,7 @@ def rank_ic_for_dims(x, y, dims):
 
 
 def layer1_diagnostics(name, x, y, out_dir, seed, max_diag_samples=20000):
+    """第一层只检查特征分布、相似度、IC与PCA结构，不证明预测收益。"""
     idx = stable_sample(len(y), max_diag_samples, seed)
     xs, ys = x[idx], y[idx]
     rng = np.random.default_rng(seed)
@@ -179,6 +182,7 @@ def fit_regressor(model, x_train, x_test, y_train):
 
 
 def layer2_simple_models(x, y, meta, seed, max_samples, max_mlp_train=12000):
+    """第二层冻结视觉特征，用简单模型检验图像表征是否含预测信号。"""
     idx = stable_sample(len(y), max_samples, seed)
     x, y, meta = x[idx], y[idx], meta.iloc[idx].reset_index(drop=True)
 
@@ -293,6 +297,7 @@ def build_numeric_features(csv_path: Path):
 
 
 def layer3_ablation(feature_sets, numeric_df, numeric_cols, seed, max_samples):
+    """第三层比较数值、图像和两者融合，判断图像模态是否提供增量。"""
     results = {}
     for name, (x_img, y, meta) in feature_sets.items():
         idx = stable_sample(len(y), max_samples, seed)
@@ -313,6 +318,7 @@ def layer3_ablation(feature_sets, numeric_df, numeric_cols, seed, max_samples):
         else:
             train_mask, test_mask, cutoff = split
 
+        # 三个输入组使用相同模型和切分，差异只来自模态组合。
         experiments = {
             "numeric_only": x_num,
             "image_only": x_img_s,
@@ -333,6 +339,7 @@ def layer3_ablation(feature_sets, numeric_df, numeric_cols, seed, max_samples):
 
 
 def main():
+    """主流程：加载四类特征 -> 依次执行三层评估 -> 汇总JSON结果。"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--feature-root", default="/root/autodl-tmp/aligned_features")
     parser.add_argument("--csv", default=None)
@@ -347,20 +354,24 @@ def main():
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    # 1. 同时读取mixed/separate与ViT/MAE四类视觉表征。
     feature_root = Path(args.feature_root)
     feature_sets = {}
     for name in ("mixed_vit", "mixed_mae", "separate_vit", "separate_mae"):
         x, y, meta = load_feature_dir(feature_root / name, args.max_stocks)
         feature_sets[name] = (x, y, meta)
 
+    # 2. 第一层：方差、余弦相似度、IC和PCA等诊断性指标。
     layer1 = {}
     for name, (x, y, _) in feature_sets.items():
         layer1[name] = layer1_diagnostics(name, x, y, out_dir, args.seed)
 
+    # 3. 第二层：Ridge、ElasticNet和小型MLP等冻结特征探针。
     layer2 = {}
     for name, (x, y, meta) in feature_sets.items():
         layer2[name] = layer2_simple_models(x, y, meta, args.seed, args.max_samples)
 
+    # 4. 第三层：数值单模态、图像单模态和多模态融合消融。
     numeric_df, numeric_cols = build_numeric_features(csv_path)
     layer3 = layer3_ablation(feature_sets, numeric_df, numeric_cols, args.seed, args.max_samples)
 
